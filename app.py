@@ -12,7 +12,10 @@ st.write(
     "i ulike bydeler av Oslo. Målet med siden er å lette på programarbeidet til lokalvalg, "
     "og å enkelt få oversikt over lokale aktører i sin bydel."
 )
-st.caption("Kilde: Brønnøysundregistrene (Frivillighetsregisteret). Kun organisasjoner med e-postadresse.")
+st.caption(
+    "Kilde: Brønnøysundregistrene (Frivillighetsregisteret) og erikbolstad.no (postnummerdata). "
+    "Kun organisasjoner med e-postadresse."
+)
 
 ALL = "Alle bydeler"
 districts = get_oslo_districts() + [ALL]
