@@ -39,6 +39,12 @@ COLUMNS = [
 ]
 st.dataframe(df[COLUMNS], use_container_width=True, hide_index=True)
 
+st.divider()
+st.caption(
+    "Feil eller forslag? "
+    "[Opprett en sak på GitHub](https://github.com/frederni/frivillighet-i-oslo/issues)."
+)
+
 buf = io.BytesIO()
 df.to_excel(buf, index=False)
 buf.seek(0)
