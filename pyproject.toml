@@ -1,6 +1,8 @@
 [project]
-name = "sv"
+name = "frivillighet-i-oslo"
 version = "0.1.0"
+description = "Streamlit-app for å finne frivillige organisasjoner i Oslo, filtrert per bydel."
+authors = [{ name = "Frederick Nilsen" }]
 requires-python = ">=3.12"
 dependencies = [
     "mypy>=2.1.0",
