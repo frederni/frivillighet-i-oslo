@@ -39,19 +39,20 @@ COLUMNS = [
 ]
 st.dataframe(df[COLUMNS], use_container_width=True, hide_index=True)
 
-st.divider()
-st.caption(
-    "Feil eller forslag? "
-    "[Opprett en sak på GitHub](https://github.com/frederni/frivillighet-i-oslo/issues)."
-)
-
 buf = io.BytesIO()
 df.to_excel(buf, index=False)
 buf.seek(0)
 export_filename = f"{selected.replace(' ', '_').lower()}_organisasjoner.xlsx"
 st.download_button(
     "Last ned Excel",
+    icon=":material/download:",
     data=buf,
     file_name=export_filename,
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+)
+
+st.divider()
+st.caption(
+    "Feil eller forslag? "
+    "[Opprett en sak på GitHub](https://github.com/frederni/frivillighet-i-oslo/issues)."
 )
