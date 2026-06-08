@@ -1,6 +1,6 @@
 # Frivillige organisasjoner i Oslo
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://frivillighet-i-oslo.streamlit.app/)
+[![Streamlit App](https://img.shields.io/badge/streamlit-app-FF4B4B?logo=streamlit&logoColor=white)](https://frivillighet-i-oslo.streamlit.app/)
 ![Python](https://img.shields.io/badge/python-3.12+-blue)
 ![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
 [![mypy](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
