@@ -1,7 +1,7 @@
 from typing import Any
-import requests
-import pandas as pd
 
+import pandas as pd
+import requests
 
 POSTAL_CODES_URL = "https://www.erikbolstad.no/postnummer-koordinatar/txt/postnummer.csv"
 BRREG_URL = "https://data.brreg.no/enhetsregisteret/api/enheter"

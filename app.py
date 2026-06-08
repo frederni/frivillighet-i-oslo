@@ -1,7 +1,9 @@
 import io
+
 import pandas as pd
 import streamlit as st
-from orgs import get_oslo_districts, get_district_orgs, get_all_oslo_orgs
+
+from orgs import get_all_oslo_orgs, get_district_orgs, get_oslo_districts
 
 st.set_page_config(page_title="Frivillige organisasjoner i Oslo", layout="wide")
 st.title("Frivillige organisasjoner i Oslo")

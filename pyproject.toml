@@ -17,6 +17,12 @@ dev = [
     "pandas-stubs>=3.0.3.260530",
 ]
 
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B"]
+
 [tool.pylint.master]
 ignore = ".venv"
 
