@@ -7,23 +7,23 @@ BRREG_URL = "https://data.brreg.no/enhetsregisteret/api/enheter"
 
 
 def _load_oslo_postal_codes() -> pd.DataFrame:
-    df = pd.read_csv(POSTAL_CODES_URL, sep="\t")
-    return df[df["KOMMUNE"] == "Oslo"].copy()
+    postal_df = pd.read_csv(POSTAL_CODES_URL, sep="\t")
+    return postal_df[postal_df["KOMMUNE"] == "Oslo"].copy()
 
 
 def get_oslo_districts() -> list[str]:
-    df = _load_oslo_postal_codes()
-    return sorted(df["BYDEL"].dropna().unique().tolist())
+    postal_df = _load_oslo_postal_codes()
+    return sorted(postal_df["BYDEL"].dropna().unique().tolist())
 
 
 def get_postal_codes_for_district(district: str) -> list[str]:
-    df = _load_oslo_postal_codes()
-    codes = df[df["BYDEL"] == district]["POSTNR"].tolist()
+    postal_df = _load_oslo_postal_codes()
+    codes = postal_df[postal_df["BYDEL"] == district]["POSTNR"].tolist()
     return [str(c).zfill(4) for c in codes]
 
 
-def fetch_organizations(postal_codes: list[str]) -> list[dict]:
-    params = {
+def fetch_organizations(postal_codes: list[str]) -> list[dict]:  # type: ignore[type-arg]
+    params: dict[str, str | int] = {
         "registrertIFrivillighetsregisteret": "true",
         "underTvangsavviklingEllerTvangsopplosning": "false",
         "underAvvikling": "false",
@@ -32,7 +32,7 @@ def fetch_organizations(postal_codes: list[str]) -> list[dict]:
         "size": 200,
         "page": 0,
     }
-    all_orgs = []
+    all_orgs: list[dict] = []  # type: ignore[type-arg]
     while True:
         resp = requests.get(BRREG_URL, params=params, timeout=30)
         resp.raise_for_status()
@@ -49,23 +49,23 @@ def fetch_organizations(postal_codes: list[str]) -> list[dict]:
     return all_orgs
 
 
-def orgs_to_dataframe(orgs: list[dict], district: str) -> pd.DataFrame:
+def orgs_to_dataframe(orgs: list[dict], district: str) -> pd.DataFrame:  # type: ignore[type-arg]
     rows = []
-    for o in orgs:
-        email = o.get("epostadresse")
+    for org in orgs:
+        email = org.get("epostadresse")
         if not email:
             continue
-        addr = o.get("postadresse") or {}
+        addr = org.get("postadresse") or {}
         rows.append({
-            "organisasjonsnummer": o.get("organisasjonsnummer"),
-            "navn": o.get("navn"),
+            "organisasjonsnummer": org.get("organisasjonsnummer"),
+            "navn": org.get("navn"),
             "epostadresse": email,
-            "telefon": o.get("telefon") or o.get("mobil"),
-            "hjemmeside": o.get("hjemmeside"),
-            "organisasjonsform": (o.get("organisasjonsform") or {}).get("beskrivelse"),
-            "naeringskode": (o.get("naeringskode1") or {}).get("beskrivelse"),
-            "aktivitet": " ".join(o.get("aktivitet") or []),
-            "stiftelsesdato": o.get("stiftelsesdato"),
+            "telefon": org.get("telefon") or org.get("mobil"),
+            "hjemmeside": org.get("hjemmeside"),
+            "organisasjonsform": (org.get("organisasjonsform") or {}).get("beskrivelse"),
+            "naeringskode": (org.get("naeringskode1") or {}).get("beskrivelse"),
+            "aktivitet": " ".join(org.get("aktivitet") or []),
+            "stiftelsesdato": org.get("stiftelsesdato"),
             "postnummer": addr.get("postnummer"),
             "poststed": addr.get("poststed"),
             "bydel": district,
@@ -83,25 +83,24 @@ def get_all_oslo_orgs() -> pd.DataFrame:
     frames = []
     for district in get_oslo_districts():
         print(f"Fetching {district}...")
-        df = get_district_orgs(district)
-        frames.append(df)
+        frames.append(get_district_orgs(district))
     combined = pd.concat(frames, ignore_index=True)
     combined.drop_duplicates(subset=["organisasjonsnummer"], inplace=True)
     return combined
 
 
-def export_to_excel(df: pd.DataFrame, path: str = "oslo_orgs.xlsx") -> None:
-    df.to_excel(path, index=False)
-    print(f"Exported {len(df)} organizations to {path}")
+def export_to_excel(result: pd.DataFrame, path: str = "oslo_orgs.xlsx") -> None:
+    result.to_excel(path, index=False)
+    print(f"Exported {len(result)} organizations to {path}")
 
 
-def export_to_json(df: pd.DataFrame, path: str = "oslo_orgs.json") -> None:
-    df.to_json(path, orient="records", force_ascii=False, indent=2)
-    print(f"Exported {len(df)} organizations to {path}")
+def export_to_json(result: pd.DataFrame, path: str = "oslo_orgs.json") -> None:
+    result.to_json(path, orient="records", force_ascii=False, indent=2)
+    print(f"Exported {len(result)} organizations to {path}")
 
 
 if __name__ == "__main__":
-    df = get_all_oslo_orgs()
-    print(f"Total organizations with email: {len(df)}")
-    export_to_excel(df)
-    export_to_json(df, "docs/oslo_orgs.json")
+    result_df = get_all_oslo_orgs()
+    print(f"Total organizations with email: {len(result_df)}")
+    export_to_excel(result_df)
+    export_to_json(result_df, "docs/oslo_orgs.json")

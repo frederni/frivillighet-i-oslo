@@ -3,9 +3,28 @@ name = "sv"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "mypy>=2.1.0",
     "openpyxl>=3.1.5",
     "pandas>=3.0.3",
+    "pylint>=4.0.5",
     "requests>=2.34.2",
     "ruff>=0.15.16",
     "streamlit>=1.58.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pandas-stubs>=3.0.3.260530",
+]
+
+[tool.pylint.master]
+ignore = ".venv"
+
+[tool.pylint.messages_control]
+disable = ["C0114", "C0116"]
+
+[tool.pylint.basic]
+const-rgx = "^([A-Z_][A-Z0-9_]*|[a-z_][a-z0-9_]*)$"
+
+[tool.pylint.format]
+max-line-length = 120
