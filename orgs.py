@@ -1,3 +1,4 @@
+from typing import Any
 import requests
 import pandas as pd
 
@@ -5,24 +6,26 @@ import pandas as pd
 POSTAL_CODES_URL = "https://www.erikbolstad.no/postnummer-koordinatar/txt/postnummer.csv"
 BRREG_URL = "https://data.brreg.no/enhetsregisteret/api/enheter"
 
+_cache: dict[str, pd.DataFrame] = {}
+
 
 def _load_oslo_postal_codes() -> pd.DataFrame:
-    postal_df = pd.read_csv(POSTAL_CODES_URL, sep="\t")
-    return postal_df[postal_df["KOMMUNE"] == "Oslo"].copy()
+    if "oslo" not in _cache:
+        postal_df = pd.read_csv(POSTAL_CODES_URL, sep="\t")
+        _cache["oslo"] = postal_df[postal_df["KOMMUNE"] == "Oslo"].copy()
+    return _cache["oslo"]
 
 
 def get_oslo_districts() -> list[str]:
-    postal_df = _load_oslo_postal_codes()
-    return sorted(postal_df["BYDEL"].dropna().unique().tolist())
+    return sorted(_load_oslo_postal_codes()["BYDEL"].dropna().unique().tolist())
 
 
 def get_postal_codes_for_district(district: str) -> list[str]:
-    postal_df = _load_oslo_postal_codes()
-    codes = postal_df[postal_df["BYDEL"] == district]["POSTNR"].tolist()
+    codes = _load_oslo_postal_codes()[_load_oslo_postal_codes()["BYDEL"] == district]["POSTNR"].tolist()
     return [str(c).zfill(4) for c in codes]
 
 
-def fetch_organizations(postal_codes: list[str]) -> list[dict]:  # type: ignore[type-arg]
+def fetch_organizations(postal_codes: list[str]) -> list[dict[str, Any]]:
     params: dict[str, str | int] = {
         "registrertIFrivillighetsregisteret": "true",
         "underTvangsavviklingEllerTvangsopplosning": "false",
@@ -32,24 +35,21 @@ def fetch_organizations(postal_codes: list[str]) -> list[dict]:  # type: ignore[
         "size": 200,
         "page": 0,
     }
-    all_orgs: list[dict] = []  # type: ignore[type-arg]
+    all_orgs: list[dict[str, Any]] = []
     while True:
         resp = requests.get(BRREG_URL, params=params, timeout=30)
         resp.raise_for_status()
         data = resp.json()
-        embedded = data.get("_embedded", {})
-        orgs = embedded.get("enheter", [])
+        orgs = data.get("_embedded", {}).get("enheter", [])
         all_orgs.extend(orgs)
         page_info = data.get("page", {})
-        current = page_info.get("number", 0)
-        total_pages = page_info.get("totalPages", 1)
-        if current + 1 >= total_pages:
+        if page_info.get("number", 0) + 1 >= page_info.get("totalPages", 1):
             break
-        params["page"] = current + 1
+        params["page"] = page_info["number"] + 1
     return all_orgs
 
 
-def orgs_to_dataframe(orgs: list[dict], district: str) -> pd.DataFrame:  # type: ignore[type-arg]
+def orgs_to_dataframe(orgs: list[dict[str, Any]], district: str) -> pd.DataFrame:
     rows = []
     for org in orgs:
         email = org.get("epostadresse")
@@ -74,9 +74,7 @@ def orgs_to_dataframe(orgs: list[dict], district: str) -> pd.DataFrame:  # type:
 
 
 def get_district_orgs(district: str) -> pd.DataFrame:
-    postal_codes = get_postal_codes_for_district(district)
-    orgs = fetch_organizations(postal_codes)
-    return orgs_to_dataframe(orgs, district)
+    return orgs_to_dataframe(fetch_organizations(get_postal_codes_for_district(district)), district)
 
 
 def get_all_oslo_orgs() -> pd.DataFrame:
@@ -87,20 +85,3 @@ def get_all_oslo_orgs() -> pd.DataFrame:
     combined = pd.concat(frames, ignore_index=True)
     combined.drop_duplicates(subset=["organisasjonsnummer"], inplace=True)
     return combined
-
-
-def export_to_excel(result: pd.DataFrame, path: str = "oslo_orgs.xlsx") -> None:
-    result.to_excel(path, index=False)
-    print(f"Exported {len(result)} organizations to {path}")
-
-
-def export_to_json(result: pd.DataFrame, path: str = "oslo_orgs.json") -> None:
-    result.to_json(path, orient="records", force_ascii=False, indent=2)
-    print(f"Exported {len(result)} organizations to {path}")
-
-
-if __name__ == "__main__":
-    result_df = get_all_oslo_orgs()
-    print(f"Total organizations with email: {len(result_df)}")
-    export_to_excel(result_df)
-    export_to_json(result_df, "docs/oslo_orgs.json")
