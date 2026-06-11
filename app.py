@@ -16,6 +16,11 @@ st.caption(
     "Kilde: Brønnøysundregistrene (Frivillighetsregisteret) og erikbolstad.no (postnummerdata). "
     "Kun organisasjoner med e-postadresse."
 )
+st.info(
+    "Merk: Organisasjoner er filtrert basert på postadresse. Noen postnumre dekker postbokser "
+    "eller firmaadresser, ikke fysisk beliggenhet. Verifiser alltid organisasjonens faktiske "
+    "adresse før bruk."
+)
 
 ALL = "Alle bydeler"
 districts = get_oslo_districts() + [ALL]
